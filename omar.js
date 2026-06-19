@@ -185,3 +185,44 @@ window.onclick = function(e) {
         closeGallery();
     }
 }
+
+
+
+function easeOutQuart(t) {
+    return 1 - Math.pow(1 - t, 4);
+}
+
+function animateCounter(el, target, duration) {
+    const start = performance.now();
+    function step(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutQuart(progress);
+        el.textContent = Math.round(eased * target);
+        if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+const statCards = document.querySelectorAll('.stat-card');
+let statsAnimated = false;
+
+const statsObserver = new IntersectionObserver((entries) => {
+    const anyVisible = entries.some(e => e.isIntersecting);
+    if (anyVisible && !statsAnimated) {
+        statsAnimated = true;
+        statCards.forEach((card) => {
+            const delay = parseInt(card.dataset.delay) || 0;
+            setTimeout(() => {
+                card.classList.add('visible');
+                const target = parseInt(card.dataset.target);
+                const countEl = card.querySelector('.count');
+                setTimeout(() => animateCounter(countEl, target, 1800), 200);
+            }, delay);
+        });
+    }
+}, { threshold: 0.3 });
+
+if (document.querySelector('.stats-grid')) {
+    statsObserver.observe(document.querySelector('.stats-grid'));
+}
